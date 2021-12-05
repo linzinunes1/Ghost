@@ -20,10 +20,11 @@ const authorize = {
     authorizeAdminApi(req, res, next) {
         const hasUser = req.user && req.user.id;
         const hasApiKey = req.api_key && req.api_key.id;
-
-        if (hasUser || hasApiKey) {
+        console.log('autorizing')
+        if (hasUser) {
             return next();
         } else {
+            console.log('eerr')
             return next(new errors.NoPermissionError({
                 message: i18n.t('errors.middleware.auth.authorizationFailed'),
                 context: i18n.t('errors.middleware.auth.missingAdminUserOrIntegration')

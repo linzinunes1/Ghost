@@ -1,5 +1,5 @@
-const helpers = require('../../services/theme-engine/handlebars/register');
-const routingService = require('../../services/routing');
+const helpers = require('../theme-engine/handlebars/register');
+const routingService = require('../routing');
 
 module.exports.getInstance = function getInstance() {
     const appRouter = routingService.registry.getRouter('appRouter');

@@ -65,6 +65,8 @@ const SETTING_KEYS_BLOCKLIST = [
     'members_stripe_webhook_secret',
     'oauth_client_id',
     'oauth_client_secret',
+    'oauth_okta_client_id',
+    'oauth_okta_client_secret',
     'email_verification_required'
 ];
 

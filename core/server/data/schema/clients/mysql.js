@@ -1,5 +1,5 @@
 const _ = require('lodash');
-const db = require('../../../data/db');
+const db = require('../../db');
 
 const doRawAndFlatten = function doRaw(query, transaction, flattenFn) {
     return (transaction || db.knex).raw(query).then(function (response) {

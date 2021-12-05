@@ -12,12 +12,18 @@ module.exports = function getSiteProperties() {
         icon: settingsCache.get('icon'),
         accent_color: settingsCache.get('accent_color'),
         url: urlUtils.urlFor('home', true),
-        version: ghostVersion.safe
+        version: ghostVersion.safe,
+        oauthOkta: true
     };
 
     if (labs.isSet('oauthLogin') && settingsCache.get('oauth_client_id') && settingsCache.get('oauth_client_secret')) {
         // Only set the oauth flag if oauth is enabled to avoid API changes
         siteProperties.oauth = true;
+    }
+
+    if (labs.isSet('oauthOktaLogin')) {
+        // Only set the oauth flag if oauth is enabled to avoid API changes
+        siteProperties.oauthOkta = true;
     }
 
     if (config.get('client_sentry') && !config.get('client_sentry').disabled) {

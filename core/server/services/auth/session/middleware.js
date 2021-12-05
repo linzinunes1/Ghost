@@ -25,6 +25,7 @@ function SessionMiddleware({sessionService}) {
                 // in a previous middleware (authorize middleware).
                 req.user = user;
             }
+            console.log(user)
             next();
         } catch (err) {
             next(err);

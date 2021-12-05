@@ -1,5 +1,5 @@
 const _ = require('lodash');
-const db = require('../../../data/db');
+const db = require('../../db');
 
 const doRaw = function doRaw(query, transaction, fn) {
     if (!fn) {

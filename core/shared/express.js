@@ -1,6 +1,7 @@
 const debug = require('@tryghost/debug')('shared:express');
 const express = require('express');
 const sentry = require('./sentry');
+const {auth} = require('express-openid-connect');
 
 module.exports = (name) => {
     debug('new app start', name);
@@ -13,6 +14,24 @@ module.exports = (name) => {
 
     // Sentry must be our first error handler. Mounting it here means all custom error handlers will come after
     app.use(sentry.errorHandler);
+
+    // Configure Passport to use Auth0
+    const config = {
+        authRequired: false,
+        auth0Logout: true,
+        baseURL: 'http://localhost:2368',
+        clientID: 'zdJHLi8MJK5NdyrcN5sAzGxPmIIxCyLi',
+        issuerBaseURL: 'https://redventures-dev.auth0.com',
+        secret: 'LONG_RANDOM_STRING'
+    };
+
+    // auth router attaches /login, /logout, and /callback routes to the baseURL
+    // app.use(auth(config));
+
+    // req.isAuthenticated is provided from the auth router
+    //app.get('/', (req, res) => {
+    //    res.send(req.oidc.isAuthenticated() ? 'Logged in' : 'Logged out')
+    //});
 
     debug('new app end', name);
     return app;

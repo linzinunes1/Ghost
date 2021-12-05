@@ -2,6 +2,7 @@ const debug = require('@tryghost/debug')('web:oauth:app');
 const {URL} = require('url');
 const passport = require('passport');
 const GoogleStrategy = require('passport-google-oauth20').Strategy;
+const Auth0Strategy = require('passport-auth0');
 const express = require('../../../shared/express');
 const urlUtils = require('../../../shared/url-utils');
 const shared = require('../shared');
@@ -19,7 +20,7 @@ module.exports = function setupOAuthApp() {
     const oauthApp = express('oauth');
 
     function labsMiddleware(req, res, next) {
-        if (labs.isSet('oauthLogin')) {
+        if (labs.isSet('oauthLogin') || labs.isSet('oauthOktaLogin')) {
             return next();
         }
         res.sendStatus(404);
@@ -40,86 +41,163 @@ module.exports = function setupOAuthApp() {
 
             //Create the callback url to be sent to Google
             const callbackUrl = new URL(urlUtils.getSiteUrl());
-            callbackUrl.pathname = '/ghost/oauth/google/callback';
+            callbackUrl.pathname = labs.isSet('oauthLogin') ? '/ghost/oauth/google/callback' : '/ghost/oauth/sso/callback';
 
-            passport.authenticate(new GoogleStrategy({
-                clientID: clientId,
-                clientSecret: secret,
-                callbackURL: callbackUrl.href
-            }, async function (accessToken, refreshToken, profile) {
-                // This is the verify function that checks that a Google-authenticated user
-                // is matching one of our users (or invite).
+            if (labs.isSet('oauthLogin')) {
+                passport.authenticate(new GoogleStrategy({
+                    clientID: clientId,
+                    clientSecret: secret,
+                    callbackURL: callbackUrl.href
+                }, async function (accessToken, refreshToken, profile) {
+                    // This is the verify function that checks that a Google-authenticated user
+                    // is matching one of our users (or invite).
 
-                if (req.user) {
-                    // CASE: the user already has an active Ghost session
-                    const emails = profile.emails.filter(email => email.verified === true).map(email => email.value);
+                    if (req.user) {
+                        // CASE: the user already has an active Ghost session
+                        const emails = profile.emails.filter(email => email.verified === true).map(email => email.value);
 
-                    if (!emails.includes(req.user.get('email'))) {
-                        return res.redirect('/ghost/#/staff/?message=oauth-linking-failed');
-                    }
-
-                    // TODO: configure the oauth data for this user (row in the oauth table)
-
-                    //Associate logged-in user with oauth account
-                    req.user.set('password', randomPassword());
-                    await req.user.save();
-                } else {
-                    // CASE: the user is logging-in or accepting an invite
-
-                    //Find user in DB and log-in
-                    //TODO: instead find the oauth row with the email use the provider id
-                    const emails = profile.emails.filter(email => email.verified === true);
-                    if (emails.length < 1) {
-                        return res.redirect('/ghost/#/signin?message=login-failed');
-                    }
-                    const email = emails[0].value;
-
-                    let user = await models.User.findOne({
-                        email: email
-                    });
-
-                    if (!user) {
-                        // CASE: the user is accepting an invite
-                        // TODO: move this code in the invitations service
-                        const options = {context: {internal: true}};
-                        let invite = await models.Invite.findOne({email, status: 'sent'}, options);
-
-                        if (!invite || invite.get('expires') < Date.now()) {
-                            return res.redirect('/ghost/#/signin?message=login-failed');
+                        if (!emails.includes(req.user.get('email'))) {
+                            return res.redirect('/ghost/#/staff/?message=oauth-linking-failed');
                         }
 
-                        //Accept invite
-                        user = await models.User.add({
-                            email: email,
-                            name: profile.displayName,
-                            password: randomPassword(),
-                            roles: [invite.toJSON().role_id]
-                        }, options);
+                        // TODO: configure the oauth data for this user (row in the oauth table)
 
-                        await invite.destroy(options);
+                        //Associate logged-in user with oauth account
+                        req.user.set('password', randomPassword());
+                        await req.user.save();
+                    } else {
+                        // CASE: the user is logging-in or accepting an invite
 
-                        // TODO: create an oauth model link to user
+                        //Find user in DB and log-in
+                        //TODO: instead find the oauth row with the email use the provider id
+                        const emails = profile.emails.filter(email => email.verified === true);
+                        if (emails.length < 1) {
+                            return res.redirect('/ghost/#/signin?message=login-failed');
+                        }
+                        const email = emails[0].value;
+
+                        let user = await models.User.findOne({
+                            email: email
+                        });
+
+                        if (!user) {
+                            // CASE: the user is accepting an invite
+                            // TODO: move this code in the invitations service
+                            const options = {context: {internal: true}};
+                            let invite = await models.Invite.findOne({email, status: 'sent'}, options);
+
+                            if (!invite || invite.get('expires') < Date.now()) {
+                                return res.redirect('/ghost/#/signin?message=login-failed');
+                            }
+
+                            //Accept invite
+                            user = await models.User.add({
+                                email: email,
+                                name: profile.displayName,
+                                password: randomPassword(),
+                                roles: [invite.toJSON().role_id]
+                            }, options);
+
+                            await invite.destroy(options);
+
+                            // TODO: create an oauth model link to user
+                        }
+
+                        req.user = user;
                     }
 
-                    req.user = user;
-                }
+                    await auth.session.sessionService.createSessionForUser(req, res, req.user);
 
-                await auth.session.sessionService.createSessionForUser(req, res, req.user);
+                    return res.redirect('/ghost/');
+                }), {
+                    scope: ['profile', 'email'],
+                    session: false,
+                    prompt: 'consent',
+                    accessType: 'offline'
+                })(req, res, next);
+            } else {
+                passport.authenticate(new Auth0Strategy({
+                    clientID: clientId,
+                    clientSecret: secret,
+                    callbackURL: callbackUrl.href,
+                    domain: 'redventures-dev.auth0.com',
+                    state: false
+                }, async function (accessToken, refreshToken, profile) {
+                    // This is the verify function that checks that a Google-authenticated user
+                    // is matching one of our users (or invite).
+                    if (req.user) {
+                        // CASE: the user already has an active Ghost session
+                        const emails = profile.emails;
+                        // console.log(profile)
+                        if (emails[0].value !== req.user.get('email')) {
+                            return res.redirect('/ghost/#/staff/?message=oauth-linking-failed');
+                        }
 
-                return res.redirect('/ghost/');
-            }), {
-                scope: ['profile', 'email'],
-                session: false,
-                prompt: 'consent',
-                accessType: 'offline'
-            })(req, res, next);
+                        // TODO: configure the oauth data for this user (row in the oauth table)
+
+                        //Associate logged-in user with oauth account
+                        req.user.set('password', randomPassword());
+
+                        await req.user.save();
+                    } else {
+                        // CASE: the user is logging-in or accepting an invite
+
+                        //Find user in DB and log-in
+                        //TODO: instead find the oauth row with the email use the provider id
+                        //console.log(profile)
+                        const emails = profile.emails;
+                        if (emails.length < 1) {
+                            return res.redirect('/ghost/#/signin?message=didnt-create');
+                        }
+                        const email = emails[0].value;
+
+                        let user = await models.User.findOne({
+                            email: email
+                        });
+
+                        if (!user) {
+                            // CASE: the user is accepting an invite
+                            // TODO: move this code in the invitations service
+                            const options = {context: {internal: true}};
+                            let invite = await models.Invite.findOne({email, status: 'sent'}, options);
+
+                            if (!invite || invite.get('expires') < Date.now()) {
+                                return res.redirect('/ghost/#/signin?message=login-failed');
+                            }
+
+                            //Accept invite
+                            user = await models.User.add({
+                                email: email,
+                                name: profile.displayName,
+                                password: randomPassword(),
+                                roles: [invite.toJSON().role_id]
+                            }, options);
+
+                            await invite.destroy(options);
+
+                            // TODO: create an oauth model link to user
+                        }
+
+                        req.user = user;
+                    }
+                    console.log('***************==========================setting session**************==========================s')
+                    await auth.session.sessionService.createSessionForUser(req, res, req.user);
+
+                    return res.redirect('/ghost/');
+                }), {
+                    scope: ['profile', 'email'],
+                    session: false,
+                    prompt: 'consent',
+                    accessType: 'offline'
+                })(req, res, next);
+            }
         };
     }
 
     oauthApp.get('/:provider', auth.authenticate.authenticateAdminApi, (req, res, next) => {
-        if (req.params.provider !== 'google') {
-            return res.sendStatus(404);
-        }
+        //if (req.params.provider !== 'google') {
+        //    return res.sendStatus(404);
+        //}
 
         const clientId = settingsCache.get('oauth_client_id');
         const secret = settingsCache.get('oauth_client_secret');
@@ -136,9 +214,9 @@ module.exports = function setupOAuthApp() {
         req.headers.referrer = urlUtils.getSiteUrl();
         next();
     }, auth.authenticate.authenticateAdminApi, (req, res, next) => {
-        if (req.params.provider !== 'google') {
-            return res.sendStatus(404);
-        }
+        //if (req.params.provider !== 'google' || req.params.provider !== 'sso') {
+        //    return res.sendStatus(404);
+        //}
 
         const clientId = settingsCache.get('oauth_client_id');
         const secret = settingsCache.get('oauth_client_secret');

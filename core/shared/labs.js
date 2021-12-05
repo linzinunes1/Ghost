@@ -27,6 +27,7 @@ const ALPHA_FEATURES = [
     'savedIndicator',
     'featureImgDragDrop',
     'oauthLogin',
+    'oauthOktaLogin',
     'membersFiltering',
     'emailOnlyPosts',
     'dashboardTwo',

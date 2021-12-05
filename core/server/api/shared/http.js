@@ -1,6 +1,6 @@
 const url = require('url');
 const debug = require('@tryghost/debug')('api:shared:http');
-const shared = require('../shared');
+const shared = require('.');
 const models = require('../../models');
 
 /**

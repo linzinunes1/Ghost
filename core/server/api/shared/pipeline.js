@@ -1,7 +1,7 @@
 const debug = require('@tryghost/debug')('api:shared:pipeline');
 const Promise = require('bluebird');
 const _ = require('lodash');
-const shared = require('../shared');
+const shared = require('.');
 const errors = require('@tryghost/errors');
 const {sequence} = require('@tryghost/promise');
 

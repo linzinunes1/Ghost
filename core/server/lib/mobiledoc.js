@@ -29,7 +29,7 @@ module.exports = {
         if (!cards) {
             const CardFactory = require('@tryghost/kg-card-factory');
             const defaultCards = require('@tryghost/kg-default-cards');
-
+            const customCards = require(process.cwd() + '/custom-cards');
             cardFactory = new CardFactory({
                 siteUrl: config.get('url'),
                 imageOptimization: config.get('imageOptimization'),
@@ -41,8 +41,7 @@ module.exports = {
                         && typeof storage.getStorage().saveRaw === 'function';
                 }
             });
-
-            cards = defaultCards.map((card) => {
+            cards = [...defaultCards, ...customCards].map((card) => {
                 return cardFactory.createCard(card);
             });
         }

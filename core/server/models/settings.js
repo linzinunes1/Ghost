@@ -41,7 +41,7 @@ const getGhostKey = doBlock(() => {
 // It's much easier for us to work with it as a single level
 // instead of iterating those categories every time
 function parseDefaultSettings() {
-    const defaultSettingsInCategories = require('../data/schema/').defaultSettings;
+    const defaultSettingsInCategories = require('../data/schema').defaultSettings;
     const defaultSettingsFlattened = {};
 
     const dynamicDefault = {

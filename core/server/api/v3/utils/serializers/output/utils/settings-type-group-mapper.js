@@ -14,6 +14,7 @@ const groupTypeMapping = {
     newsletter: 'newsletter',
     firstpromoter: 'firstpromoter',
     oauth: 'oauth',
+    oauthOkta: 'oauthOkta',
     editor: 'editor'
 };
 

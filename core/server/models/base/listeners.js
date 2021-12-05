@@ -1,6 +1,6 @@
 const moment = require('moment-timezone');
 const _ = require('lodash');
-const models = require('../../models');
+const models = require('..');
 const logging = require('@tryghost/logging');
 const errors = require('@tryghost/errors');
 const Promise = require('bluebird');

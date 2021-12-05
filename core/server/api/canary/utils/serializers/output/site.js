@@ -15,6 +15,7 @@ module.exports = {
                 'url',
                 'version',
                 'oauth',
+                'oauthOkta',
                 'sentry_dsn',
                 'sentry_env'
             ])

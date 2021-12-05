@@ -2,7 +2,7 @@ const jwt = require('jsonwebtoken');
 const url = require('url');
 const models = require('../../../models');
 const errors = require('@tryghost/errors');
-const limitService = require('../../../services/limits');
+const limitService = require('../../limits');
 const i18n = require('../../../../shared/i18n');
 const _ = require('lodash');
 
@@ -37,6 +37,7 @@ const _extractTokenFromUrl = function extractTokenFromUrl(reqUrl) {
 const authenticate = (req, res, next) => {
     // CASE: we don't have an Authorization header so allow fallthrough to other
     // auth middleware or final "ensure authenticated" check
+    console.log(req.headers)
     if (!req.headers || !req.headers.authorization) {
         req.api_key = null;
         return next();

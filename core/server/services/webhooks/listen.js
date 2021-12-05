@@ -1,5 +1,5 @@
 const _ = require('lodash');
-const limitService = require('../../services/limits');
+const limitService = require('../limits');
 const logging = require('@tryghost/logging');
 const trigger = require('./trigger');
 

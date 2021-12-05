@@ -1,6 +1,6 @@
 const Promise = require('bluebird');
 const errors = require('@tryghost/errors');
-const hbs = require('../../theme-engine/engine');
+const hbs = require('../engine');
 const config = require('../../../../shared/config');
 const logging = require('@tryghost/logging');
 

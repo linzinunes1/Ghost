@@ -23,12 +23,17 @@ module.exports = class SessionStore extends Store {
                 if (!model) {
                     return callback(null, null);
                 }
+                console.log('sessionData*****')
+                console.log(model.get('session_data'))
                 callback(null, model.get('session_data'));
             })
             .catch(callback);
     }
 
     set(sid, sessionData, callback) {
+        console.log('sessionData*****')
+
+        console.log(sessionData)
         if (!sessionData.user_id) {
             return callback(new InternalServerError({
                 message: 'Cannot create a session with no user_id'

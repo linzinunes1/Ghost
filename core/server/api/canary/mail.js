@@ -1,7 +1,7 @@
 const Promise = require('bluebird');
 const i18n = require('../../../shared/i18n');
 const mailService = require('../../services/mail');
-const api = require('./');
+const api = require('.');
 let mailer;
 let _private = {};
 

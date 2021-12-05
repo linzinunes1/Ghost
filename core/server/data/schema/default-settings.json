@@ -574,6 +574,16 @@
             "type": "string"
         }
     },
+    "oktaoauth": {
+        "oauth_okta_client_id" : {
+            "defaultValue": null,
+            "type": "string"
+        },
+        "oauth_okta_client_secret" : {
+            "defaultValue": null,
+            "type": "string"
+        }
+    },
     "editor": {
         "editor_default_email_recipients": {
             "defaultValue": "visibility",

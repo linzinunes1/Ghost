@@ -1,6 +1,6 @@
 const _ = require('lodash');
 const Promise = require('bluebird');
-const db = require('../../data/db');
+const db = require('../db');
 const commands = require('../schema').commands;
 const ghostVersion = require('@tryghost/version');
 const i18n = require('../../../shared/i18n');

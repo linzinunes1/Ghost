@@ -1,7 +1,7 @@
 const _ = require('lodash');
 const logging = require('@tryghost/logging');
 const models = require('../../../../models');
-const fixtures = require('../../../../data/schema/fixtures');
+const fixtures = require('../../../schema/fixtures');
 const message1 = 'Adding demo post.';
 const message2 = 'Added demo post.';
 const message3 = 'Skipped: Adding demo post. Slug already in use.';

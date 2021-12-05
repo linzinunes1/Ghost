@@ -1,7 +1,7 @@
 const debug = require('@tryghost/debug')('services:routing:controllers:unsubscribe');
 const path = require('path');
 const megaService = require('../../../../server/services/mega');
-const helpers = require('../../../services/routing/helpers');
+const helpers = require('../helpers');
 
 module.exports = async function unsubscribeController(req, res) {
     debug('unsubscribeController');
